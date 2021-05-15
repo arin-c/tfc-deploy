@@ -1,0 +1,25 @@
+name: 'Deploy to Terraform Cloud Workspace'
+description: 'Update, Queue and Apply change to Terraform Cloud Workspace'
+inputs:
+  token:
+    description: 'Authentication token for TFC'
+    required: true
+  workspace_id:
+    description: 'Workspace ID to be updated'
+    required: true
+  variable_id:
+    description: 'Workspace Variable ID to be updated'
+    required: true
+  image:
+    description: 'The value of the variable to be set'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - run: ${{ github.action_path }}/deploy.sh
+      env:
+        TOKEN: ${{ inputs.token }}
+        WORKSPACE_ID: ${{ inputs.workspace_id }}
+        VARIABLE_ID: ${{ inputs.variable_id }}
+        IMAGE: ${{ inputs.image }}
+      shell: bash
