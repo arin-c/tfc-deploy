@@ -101,11 +101,11 @@ then
 fi
 echo "Created run: $run_id"
 
-workspace_plan_duration_average=$(echo $workspace_data | jq '.attributes."plan-duration-average" / 1000 / 4 | floor +1')
 run_status=$(echo $run_data | jq -r .attributes.status)
 while true
 do
     echo "Waiting for plan to be ready ($run_status)"
+
     case $run_status in
         pending | plan_queued | planning)
             ;;
@@ -118,14 +118,15 @@ do
             exit 1
             ;;
     esac
-    sleep $workspace_plan_duration_average
+
+    sleep 10
     run_data=$(tfc_get /runs/$run_id | jq -r .data)
     run_status=$(echo $run_data | jq -r .attributes.status)
 done
 
 if [ "$run_status" != "planned" ]
 then
-    echo "Failed to plan change within time limit, check workspace."
+    echo "Failed to plan change, check workspace."
     exit 1
 fi
 
@@ -135,15 +136,15 @@ cat > apply.run.json <<EOF
   "comment": "Automatic confirm via GitHub action step!"
 }
 EOF
+
 # hide result of curl
 run_apply=$(tfc_post /runs/$run_id/actions/apply @apply.run.json)
 run_data=$(tfc_get /runs/$run_id | jq -r .data)
-
-workspace_apply_duration_average=$(echo $workspace_data | jq '.attributes."apply-duration-average" / 1000 / 4 | floor +1')
 run_status=$(echo $run_data | jq -r .attributes.status)
 while true
 do
     echo "Applying run: ($run_status)"
+
     case $run_status in
         applied | planned_and_finished)
             echo "Run has been applied, IaC is up to date."
@@ -156,10 +157,11 @@ do
         *)
             ;;
     esac
-    sleep $workspace_apply_duration_average
+
+    sleep 10
     run_data=$(tfc_get /runs/$run_id | jq -r .data)
     run_status=$(echo $run_data | jq -r .attributes.status)
 done
 
-echo "Failed to apply change within time limit, check workspace."
+echo "Failed to apply change, check workspace."
 exit 1
