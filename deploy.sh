@@ -103,9 +103,7 @@ echo "Created run: $run_id"
 
 workspace_plan_duration_average=$(echo $workspace_data | jq '.attributes."plan-duration-average" / 1000 / 4 | floor +1')
 run_status=$(echo $run_data | jq -r .attributes.status)
-timeout=$(date +%s)
-# Dont wait more than 5 minutes for planning
-while [ $(expr $(date +%s) - $timeout) -lt  300 ]
+while true
 do
     echo "Waiting for plan to be ready ($run_status)"
     case $run_status in
@@ -143,9 +141,7 @@ run_data=$(tfc_get /runs/$run_id | jq -r .data)
 
 workspace_apply_duration_average=$(echo $workspace_data | jq '.attributes."apply-duration-average" / 1000 / 4 | floor +1')
 run_status=$(echo $run_data | jq -r .attributes.status)
-timeout=$(date +%s)
-# Dont wait more than 5 minutes for planning
-while [ $(expr $(date +%s) - $timeout) -lt  300 ]
+while true
 do
     echo "Applying run: ($run_status)"
     case $run_status in
